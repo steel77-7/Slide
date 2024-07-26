@@ -14,7 +14,7 @@ export default function Navbar() {
             <Link href="/">
               <div className="text-gray-700 hover:text-blue-600 cursor-pointer">Home</div>
             </Link>
-            <Link href="/files">
+            <Link href="f/files">
               <div className="text-gray-700 hover:text-blue-600 cursor-pointer">Files</div>
             </Link>
             <Link href="/about">
