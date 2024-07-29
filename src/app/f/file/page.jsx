@@ -12,36 +12,13 @@ export default function Files() {
   const connectionStringRef = useRef(generateToken(15));
   let socket = getSocket();
 
-  useEffect(() => {
-    function onConnect() {
-      setIsConnected(true);
-    }
-
-    function onDisconnect() {
-      setIsConnected(false);
-    }
-
-    function onRecieveRequest({connectionString}) {
-      if(connectionString===connectionStringRef){
-        socket.emit('establish-rtcConnection',{})
-      }
-    }
-
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-    socket.on("recieve-request", onRecieveRequest);
-
-    return () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
-      socket.off("recieve-request", onRecieveRequest);
-    };
-  }, [socket]);
+ 
 
   // Key press
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && e.target.value.trim() !== "") {
       console.log("User's connection string:", e.target.value);
+      handleSendReqest();
       
     }
   };
@@ -52,7 +29,7 @@ export default function Files() {
 
   return (
     <>
-      {uploadPress && <UploadComponent setUploadPress={setUploadPress} />}
+      {uploadPress && <UploadComponent setUploadPress={setUploadPress} handleSendReqest={handleSendReqest}/>}
       <div className="flex flex-col min-h-screen bg-gray-50 p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-semibold text-gray-800">Files</h1>

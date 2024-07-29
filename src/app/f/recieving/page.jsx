@@ -1,11 +1,40 @@
 "use client";
+
 import React,{ useState } from 'react'
 import RecievePopupComponent from '@/components/revievePopupComponent'
 import { generateToken } from '@/misc/tokenGernerator';
+import getSocket from '@/misc/getSocket';
+import { useRef } from 'react/cjs/react.production.min';
  
 export default function Recieving() {
     const [reject, setReject] = useState(true)
-    const connectionString = generateToken(15);
+    const connectionStringRef = useRef(generateToken(15));
+//socket logic
+    useEffect(() => {
+      function onConnect() {
+        setIsConnected(true);
+      }
+  
+      function onDisconnect() {
+        setIsConnected(false);
+      }
+  
+      function onRecieveRequest({connectionString}) {
+        if(connectionString===connectionStringRef){
+          socket.emit('establish-rtcConnection',{})
+        }
+      }
+  
+      socket.on("connect", onConnect);
+      socket.on("disconnect", onDisconnect);
+      socket.on("connection-request", onRecieveRequest);
+  
+      return () => {
+        socket.off("connect", onConnect);
+        socket.off("disconnect", onDisconnect);
+        socket.off("recieve-request", onRecieveRequest);
+      };
+    }, [socket]);
   return (
    <>
     <>
