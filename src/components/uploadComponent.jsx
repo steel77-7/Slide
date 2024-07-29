@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 export default function UploadComponent({ setUploadPress }) {
@@ -39,7 +40,7 @@ export default function UploadComponent({ setUploadPress }) {
   };
 
   const handleUpload = () => {
-    // Handle the file upload logic here
+    
     console.log('Files to upload:', files);
     setFiles([]);
    

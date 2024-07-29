@@ -14,11 +14,11 @@ export default function Navbar() {
             <Link href="/">
               <div className="text-gray-700 hover:text-blue-600 cursor-pointer">Home</div>
             </Link>
-            <Link href="f/files">
+            <Link href="file">
               <div className="text-gray-700 hover:text-blue-600 cursor-pointer">Files</div>
             </Link>
-            <Link href="/about">
-              <div className="text-gray-700 hover:text-blue-600 cursor-pointer">About</div>
+            <Link href="recieving">
+              <div className="text-gray-700 hover:text-blue-600 cursor-pointer">Recieve files</div>
             </Link>
           </div>
           <div className="flex items-center space-x-4">
