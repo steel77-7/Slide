@@ -1,8 +1,12 @@
 "use client";
 import React from "react";
 
-export default function RecievePopupComponent({ user, profilePicture,setReject }) {
-    
+export default function RecievePopupComponent({
+  user,
+  profilePicture,
+  handleReject,
+  handleEstablishConnection,
+}) {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
       <div className="flex flex-col items-center h-auto w-96 bg-white rounded-md p-6 shadow-lg">
@@ -15,13 +19,20 @@ export default function RecievePopupComponent({ user, profilePicture,setReject }
         </div>
         <h1 className="text-3xl text-blue-500 font-bold mb-2">Connect</h1>
         <p className="text-center text-gray-700 mb-4">
-          <span className="font-semibold">{user}</span> wants to connect with you.
+          <span className="font-semibold">{user}</span> wants to connect with
+          you.
         </p>
         <div className="flex gap-4">
-          <button className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors" onClick={()=>setReject(prev=> {return !prev})}>
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
+            onClick={handleReject}
+          >
             Reject
           </button>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+            onClick={handleEstablishConnection}
+          >
             Connect
           </button>
         </div>
