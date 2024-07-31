@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useState,useRef,useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import RecievePopupComponent from "@/components/revievePopupComponent";
-import  generateToken  from "@/misc/tokenGernerator";
+import generateToken from "@/misc/tokenGernerator";
 import getSocket from "@/misc/getSocket";
-
+import { genrateAnswer, setRemoteDescription,generateOffer,handlingDataChannel } from "@/misc/rtcHandler";
 
 export default function Recieving() {
   const [reject, setReject] = useState(true);
-  const [isConnected,setIsConnected] = useState(false)
+  const [isConnected, setIsConnected] = useState(false);
   const connectionStringRef = useRef(generateToken(15));
   let socket = getSocket();
   //socket logic
   useEffect(() => {
     function onConnect() {
-      console.log(socket.id)
+      console.log(socket.id);
       setIsConnected(true);
     }
 
@@ -23,40 +23,70 @@ export default function Recieving() {
     }
 
     function onRecieveRequest({ connectionString }) {
-      if (connectionString === connectionStringRef) {
-        setReject(false); 
+      console.log("connection string recieved", connectionString);
+      if (connectionString === connectionStringRef.current) {
+        setReject(false);
+      } else {
+        console.log(
+          "string mismatch or the connection string is incorrect",
+          connectionString,
+          connectionStringRef.current
+        );
+        socket.emit("handleConnectionRequest", {
+          message: "string-mismatch",
+          request: false,
+        });
+        return;
       }
-      else{
-        socket.emit('handleConnectionRequest', {message:'string-mismatch', request:false })
-      }
+    }
+
+    function recieveAnswer({peerConnection, answer}){
+      setRemoteDescription(peerConnection,answer)
     }
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("connection-request", onRecieveRequest);
+    socket.on('answer',recieveAnswer)
 
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
-      socket.off("recieve-request", onRecieveRequest);
+      socket.off("connection-request", onRecieveRequest);
+      socket.off('answer',recieveAnswer)
     };
   }, [socket]);
 
-
   // to establish  a peer to peer connection with the other client (remote Peer)
-  const handleEstablishConnection =()=>{
+  const handleEstablishConnection = async () => {
+    const { offer,dataChannel } = await generateOffer();
+    //console.log('offer in handleEstablishConnection ', await generateOffer())
+    socket.emit("handleConnectionRequest", {
+      message: "Connected",
+      request: true,
+      offer:offer
+    });
+    handlingDataChannel(dataChannel);
+    
+    setReject(true);
+  };
 
-
-  }
-
-  const handleReject = ()=>{
+  const handleReject = () => {
     setReject(!reject);
-    socket.emit("handleConnectionRequest",{message: "Connection request rejected",request:false })
-  }
+    socket.emit("handleConnectionRequest", {
+      message: "Connection request rejected",
+      request: false,
+    });
+  };
   return (
     <>
       <>
-        {!reject && <RecievePopupComponent handleReject={handleReject} handleEstablishConnection={handleEstablishConnection}/>}
+        {!reject && (
+          <RecievePopupComponent
+            handleReject={handleReject}
+            handleEstablishConnection={handleEstablishConnection}
+          />
+        )}
         <div className="flex flex-col min-h-screen bg-gray-50 p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-semibold text-gray-800">Files</h1>

@@ -27,11 +27,21 @@ io.on('connection', (socket) => {
     });
 
     socket.on('connection-request', (data) => {
-        socket.emit('connection-request', data);
+        console.log("connection-request (data)", data)
+        socket.broadcast.emit('connection-request', data);
     });
 
     socket.on('handleConnectionRequest', (data) => {
-        socket.emit('handleConnectionRequest', data);
+        console.log("handleConnectionRequest (data)", data)
+        socket.broadcast.emit('handleConnectionRequest', data);
+    });
+    socket.on('offer', (data) => {
+        console.log("offer (data)", data)
+        socket.broadcast.emit('offer', data);
+    });
+    socket.on('answer', (data) => {
+        console.log("answer (data)", data)
+        socket.broadcast.emit('answer', data);
     });
 });
 

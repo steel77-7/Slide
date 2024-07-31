@@ -1,3 +1,5 @@
+"use client"
+
 const crypto = require('crypto');
 
 export default function generateToken(length) {
