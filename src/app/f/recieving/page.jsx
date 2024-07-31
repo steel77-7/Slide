@@ -8,9 +8,11 @@ import { genrateAnswer, setRemoteDescription,generateOffer,handlingDataChannel }
 
 export default function Recieving() {
   const [reject, setReject] = useState(true);
+ const peerRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
   const connectionStringRef = useRef(generateToken(15));
   let socket = getSocket();
+  
   //socket logic
   useEffect(() => {
     function onConnect() {
@@ -40,8 +42,9 @@ export default function Recieving() {
       }
     }
 
-    function recieveAnswer({peerConnection, answer}){
-      setRemoteDescription(peerConnection,answer)
+   async function recieveAnswer({ answer}){
+     console.log("answer",answer)
+     await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer))
     }
 
     socket.on("connect", onConnect);
@@ -59,17 +62,27 @@ export default function Recieving() {
 
   // to establish  a peer to peer connection with the other client (remote Peer)
   const handleEstablishConnection = async () => {
-    const { offer,dataChannel } = await generateOffer();
+    const { offer,dataChannel ,peerConnection} = await generateOffer();
     //console.log('offer in handleEstablishConnection ', await generateOffer())
+    console.log("peerconnection",peerConnection)
+    peerRef.current = peerConnection;
     socket.emit("handleConnectionRequest", {
       message: "Connected",
       request: true,
       offer:offer
     });
-    handlingDataChannel(dataChannel);
+    handlingDataChannel(peerConnection,dataChannel);
     
     setReject(true);
   };
+
+
+  const rtcHanldler =()=>{
+    const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
+    const peerConnection = new RTCPeerConnection(configuration);
+
+    const dataChannel = peerConnection.createDataChannel('message ')
+  }
 
   const handleReject = () => {
     setReject(!reject);

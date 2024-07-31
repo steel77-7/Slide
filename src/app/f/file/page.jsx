@@ -5,10 +5,11 @@ import UploadComponent from "@/components/uploadComponent";
 import generateToken from "@/misc/tokenGernerator";
 import React, { useState, useEffect, useRef } from "react";
 import getSocket from "@/misc/getSocket";
-import { generateAnswer, generateOffer,handlingDataChannel } from "@/misc/rtcHandler";
+import { generateAnswer,handlingDataChannel} from "@/misc/rtcHandler";
 
 export default function Files() {
   const [uploadPress, setUploadPress] = useState(false);
+  const [peer, setPeer] = useState({})
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(null);
   const connectionStringRef = useRef(generateToken(15));
@@ -33,33 +34,37 @@ export default function Files() {
         });
        const {answer,dataChannel} =await generateAnswer(data.offer)
        handlingDataChannel(dataChannel);
-       dataChannel.send('yooooo!!!!!!!!!!!!!')
+       
       } 
       else
-        setConnectionStatus({
+       return setConnectionStatus({
           color: "bg-red-400",
           message: data.message,
         });
-
+        if(data.offer){
+         await handleAnswer(data.offer);
+        }
         
     }
 
-    function handleAnswer(data){
-      console.log('offer recieved!!! \n' , data)
-      const {peerConnection,answer}= genrateAnswer(data.offer);
-      setRemoteDescription(peerConnection,answer);
-      socket.emit('answer', {peerConnection,answer})
+    async function handleAnswer(offer){
+      console.log('offer recieved!!! \n' , offer)
+      const {peerConnection,answer,dataChannel}= await generateAnswer(offer);
+     // await setRemoteDescription(peerConnection,answer);
+     setPeer(peerConnection);
+     handlingDataChannel(peer,dataChannel)
+      socket.emit('answer', {answer})
     }
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("handleConnectionRequest", handleConnectionRequest);
-    socket.on('offer',handleAnswer)
+    //socket.on('offer',handleAnswer)
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("recieve-request", handleConnectionRequest);
-      socket.off('offer',handleAnswer)
+      //socket.off('offer',handleAnswer)
     };
   }, [socket]);
 
@@ -82,9 +87,9 @@ export default function Files() {
     });
   };
   //handling the rtc connection by sending recieving the SDP frobn the remote peer
-  const handleRTCConnection = () => {
+  /* const handleRTCConnection = () => {
     const offer = socket.emit("offer");
-  };
+  }; */
 
   return (
     <>

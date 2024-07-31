@@ -10,7 +10,11 @@ function init() {
 
 export async function generateOffer() {
     const { peerConnection ,dataChannel} = init();
-    
+   
+
+    dataChannel.onopen=()=>console.log("CONNECTION ESTABLISHED!!!!!!!!!!!")
+    dataChannel.onclose=()=>console.log("CONNECTION CLOSED!!!!!!!!!!!")
+    dataChannel.onmessage =(e)=> console.log("message arrived",e.data)
     try {
       const offer = await peerConnection.createOffer();
       console.log("offer", offer);
@@ -18,13 +22,13 @@ export async function generateOffer() {
       await peerConnection.setLocalDescription(offer);
       console.log("Local description set", offer);
   
-      peerConnection.onicecandidate = (event) => {
+     /*  peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
-          // Send ICE candidate to the remote peer
+           //handleNewICECandidateMsg(peerConnection,event.candidate)
           console.log("New ICE candidate:", event.candidate);
         }
-      };
-  
+      }; */
+        //send offer to the peer
       return { peerConnection, offer,dataChannel };
     } catch (error) {
       console.error("Error generating offer:", error);
@@ -38,13 +42,20 @@ export async function generateAnswer(offer) {
     const { peerConnection ,dataChannel} = init();
   
     // Setting up remote description
-    peerConnection.onicecandidate = (event) => {
+    /* peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
-        // Send ICE candidate to the remote peer
+        //handleNewICECandidateMsg(peerConnection,event.candidate)
         console.log("New ICE candidate:", event.candidate);
       }
-    };
+    }; */
     
+    peerConnection.ondatachannel =e=>{
+      const rdataChannel = e.channel;
+      rdataChannel.onopen = (e) => console.log('Data channel is open');
+      rdataChannel.onclose = (e) => console.log('Data channel is closed');
+      rdataChannel.onmessage =(e)=> console.log("message arrived",e.data)
+     }
+   
   
     try {
       await peerConnection.setRemoteDescription(offer);
@@ -53,7 +64,7 @@ export async function generateAnswer(offer) {
       // Setting up local description
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
-      console.log("Local description set", answer);
+      console.log("Local description set (generate answer)", answer);
   
       return { peerConnection, answer ,dataChannel};
     } catch (error) {
@@ -61,17 +72,29 @@ export async function generateAnswer(offer) {
       throw error; // Re-throw the error to propagate it further if needed
     }
   }
-  
+  async function handleNewICECandidateMsg(peerConnection,incoming) {
+    const candidate = new RTCIceCandidate(incoming);
+
+    peerConnection.addIceCandidate(candidate)
+        .catch(e => console.log(e));
+}
 
 export async function setRemoteDescription(peerConnection, answer) {
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-  console.log("Remote description set (answer)");
+    console.log('perreconnecton ',peerConnection)
+  await peerConnection.setRemoteDescription(answer);
+  console.log("Remote description set (answer)(the next one)");
 }
 
-export function handlingDataChannel(dataChannel) {
-   
-    dataChannel.onopen = () => console.log('Data channel is open');
-    dataChannel.onclose = () => console.log('Data channel is closed');
-    dataChannel.onmessage =(e)=> console.log(e)
-    dataChannel.send('hellooooo to you')
+export function handlingDataChannel(peerConnection,dataChannel) {
+   peerConnection.ondatachannel =e=>{
+    dataChannel.onopen = (e) => console.log('Data channel is open');
+    dataChannel.onclose = (e) => console.log('Data channel is closed');
+    dataChannel.onmessage =(e)=> console.log("message arrived",e.data)
+   }
+    /* dataChannel.onopen = (e) => console.log('Data channel is open');
+    dataChannel.onclose = (e) => console.log('Data channel is closed');
+    dataChannel.onmessage =(e)=> console.log("message arrived",e.data)
+    
+    dataChannel.send('hellooooo to you') */
 }
+
