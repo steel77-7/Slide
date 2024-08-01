@@ -43,6 +43,10 @@ io.on('connection', (socket) => {
         console.log("answer (data)", data)
         socket.broadcast.emit('answer', data);
     });
+    socket.on('ice-candidate', (data) => {
+        console.log("ice candidate (data)", data)
+        socket.broadcast.emit('ice-candidate', data);
+    });
 });
 
 const PORT = process.env.PORT || 4000;
