@@ -7,9 +7,11 @@ import getSocket from "@/misc/getSocket";
 
 export default function Recieving() {
   const [reject, setReject] = useState(true);
+  const[connectionStatus, setConnectionStatus]= useState(false)
   const peerRef = useRef(null);
   const dataChannel = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [fileURL,setFileURL] = useState('')
   const connectionStringRef = useRef(generateToken(15));
   const socket = getSocket();
 
@@ -50,7 +52,7 @@ export default function Recieving() {
           await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
           console.log("Remote description set successfully");
           console.log("State after setting remote description: ", peerRef.current.signalingState);
-          dataChannel.current.send('hello');
+          
         } else {
           console.error("Peer connection is not in the correct state to set remote description", peerRef.current);
         }
@@ -96,7 +98,7 @@ export default function Recieving() {
       request: true,
       offer: offer,
     });
-
+    setConnectionStatus(true)
     setReject(true);
   };
 
@@ -106,10 +108,12 @@ export default function Recieving() {
     };
     const peerConnection = new RTCPeerConnection(configuration);
 
-    dataChannel.current = peerConnection.createDataChannel("message");
+    dataChannel.current = peerConnection.createDataChannel("file");
     dataChannel.current.onopen = () => console.log("Data channel is open");
     dataChannel.current.onclose = () => console.log("Data channel is closed");
-    dataChannel.current.onmessage = (e) => console.log("Message received:", e.data);
+    dataChannel.current.onmessage = (e) => {console.log("Message received:", e.data)
+      recieveFiles(e.data);
+    };
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
@@ -141,6 +145,27 @@ export default function Recieving() {
     });
   };
 
+  //handling the file transfer logic
+  let fileChunk=[];
+  let fileType;
+  const recieveFiles = async(data) => {
+    if(data === 'done'){
+    console.log('file chunk', fileChunk)
+    const file = new Blob(fileChunk,{type:fileType});
+    console.log('files received: ', file);
+    const url = URL.createObjectURL(file)
+    setFileURL(url);
+    }
+
+    if(typeof data ==='string'&& data!=='done'){
+    let type =JSON.parse(data);
+    fileType = type.fileType;
+    return
+    }
+    fileChunk.push(data)
+   }
+  
+
   return (
     <>
       {!reject && (
@@ -151,11 +176,16 @@ export default function Recieving() {
       )}
       <div className="flex flex-col min-h-screen bg-gray-50 p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-semibold text-gray-800">Files</h1>
+          <h1 className="text-3xl font-semibold text-gray-800">Receiving Files</h1>
         </div>
-        <p>Your connection string: {connectionStringRef.current}</p>
-        <p>Connected with user:</p>
-        <div className="flex-1 flex bg-zinc-100 shadow-2xl rounded-lg overflow-hidden">
+        <p className="text-gray-600 mb-4">
+          <strong>Your connection string:</strong> {connectionStringRef.current}
+        </p>
+        <p className="text-gray-600 mb-4">
+          <strong>Connected with user:</strong> {connectionStatus?'Yes':'No'}
+        </p>
+        {fileURL!==''&&<p>Download:{<a href={fileURL} download={'recieved_file'} >file</a>}</p>}
+        <div className="flex-1 flex bg-white shadow-2xl rounded-lg overflow-hidden">
           <div className="w-full flex-1 max-w-4xl p-4"></div>
         </div>
       </div>

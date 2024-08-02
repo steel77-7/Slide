@@ -5,18 +5,17 @@ import UploadComponent from "@/components/uploadComponent";
 import generateToken from "@/misc/tokenGernerator";
 import React, { useState, useEffect, useRef } from "react";
 import getSocket from "@/misc/getSocket";
-//import { generateAnswer,handlingDataChannel} from "@/misc/rtcHandler";
 
 export default function Files() {
-  const [uploadPress, setUploadPress] = useState(false);
+ 
   const peerRef = useRef(null);
   const dataChannel = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [files, setFiles] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState(null);
   const connectionStringRef = useRef(generateToken(15));
   let socket = getSocket();
 
-  //socket logic
   useEffect(() => {
     function onConnect() {
       console.log(socket.id);
@@ -34,34 +33,31 @@ export default function Files() {
           message: data.message,
         });
         const answer = await generateAnswer(data.offer);
-      socket.emit('answer', answer);
+        socket.emit("answer", answer);
       } else {
-        return setConnectionStatus({
+        setConnectionStatus({
           color: "bg-red-400",
           message: data.message,
         });
       }
-      
     }
-
-
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("handleConnectionRequest", handleConnectionRequest);
-    socket.on('ice-candidate', incomingICECandidate);
+    socket.on("ice-candidate", incomingICECandidate);
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("handleConnectionRequest", handleConnectionRequest);
-      socket.off('ice-candidate', incomingICECandidate);
+      socket.off("ice-candidate", incomingICECandidate);
     };
   }, [socket]);
 
-  useEffect(()=>{
+  useEffect(() => {
     peerRef.current = createpeer();
-  },[])
-  // Key press
+  }, []);
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && e.target.value.trim() !== "") {
       console.log("User's connection string:", e.target.value);
@@ -69,21 +65,22 @@ export default function Files() {
     }
   };
 
-  //sending the connection string
   const handleSendRequest = async (e) => {
     socket.emit("connection-request", {
-      connectionString: e.target.value
+      connectionString: e.target.value,
     });
     setConnectionStatus({
       color: "bg-yellow-600",
       message: "processing...",
     });
   };
-  
+
   async function generateAnswer(offer) {
     try {
-      await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
-      console.log("Remote description set!!!!");
+      await peerRef.current.setRemoteDescription(
+        new RTCSessionDescription(offer)
+      );
+      console.log("Remote description set!");
       const answer = await peerRef.current.createAnswer();
       await peerRef.current.setLocalDescription(answer);
       console.log("Local description set successfully (answer):", answer);
@@ -94,17 +91,16 @@ export default function Files() {
     }
   }
 
-    
- 
-
   const createpeer = () => {
-    const configuration = { 'iceServers': [{ 'urls': 'stun:stun.l.google.com:19302' }] };
+    const configuration = {
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    };
     const peerConnection = new RTCPeerConnection(configuration);
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         console.log("Sending ICE candidate:", event.candidate);
-        socket.emit('ice-candidate', event.candidate);
+        socket.emit("ice-candidate", event.candidate);
       }
     };
 
@@ -112,12 +108,12 @@ export default function Files() {
       dataChannel.current = event.channel;
       dataChannel.current.onopen = () => console.log("Data channel is open");
       dataChannel.current.onclose = () => console.log("Data channel is closed");
-      dataChannel.current.onmessage = (e) => console.log("Message received:", e.data);
+      dataChannel.current.onmessage = (e) =>
+        console.log("Message received:", e.data);
     };
 
     return peerConnection;
   };
-  
 
   async function incomingICECandidate(candidate) {
     console.log("Incoming ICE candidate:", candidate);
@@ -128,51 +124,76 @@ export default function Files() {
       console.error("Error occurred while handling ICE candidates", error);
     }
   }
+
+  //send files to recieving end
+  const sendFiles = () => {
+    files.forEach(async (file) => {
+      let buffer = await file.arrayBuffer();
+      const chunkSize = 16 * 1024;
+      dataChannel.current.send(JSON.stringify({ fileType: file.type,fileName:file.name}));
+      while (buffer.byteLength) {
+        const chunk = buffer.slice(0, chunkSize);
+        buffer = buffer.slice(chunkSize, buffer.byteLength);
+        dataChannel.current.send(chunk);
+      }
+      dataChannel.current.send('done');
+    });
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 p-6">
+    <div className="flex flex-col min-h-screen bg-gray-100 p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-semibold text-gray-800">Files</h1>
-        <button
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          onClick={() => setUploadPress(true)}
-        >
-          Upload
-        </button>
+        <Upload setFiles={setFiles} sendFiles={sendFiles} />
       </div>
-      <p>Your connection string: {connectionStringRef.current}</p>
+      <p className="mb-4 text-lg font-medium text-gray-700">
+        Your connection string:{" "}
+        <span className="font-bold">{connectionStringRef.current}</span>
+      </p>
       <input
         type="text"
         placeholder="Enter connection string..."
-        className="border border-gray-300 rounded p-2 mb-4"
+        className="border border-gray-300 rounded p-2 mb-4 w-full max-w-lg"
         onKeyPress={handleKeyPress}
       />
       {connectionStatus && (
-        <p className={`${connectionStatus.color} p-2 rounded text-white`}>
+        <p className={`${connectionStatus.color} p-2 rounded text-white mb-4`}>
           {connectionStatus.message}
         </p>
       )}
-      <div className="flex-1 flex bg-zinc-100 shadow-2xl rounded-lg overflow-hidden">
+      <div className="flex gap-4 mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800">Upload Files</h2>
+        <button
+          className="bg-red-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+          onClick={() => setFiles([])}
+        >
+          Reset Queue
+        </button>
+      </div>
+      <div className="flex-1 flex bg-white shadow-2xl rounded-lg overflow-hidden">
         <div className="w-full flex-1 max-w-4xl p-4">
-          
+          <UploadComponent
+           
+            files={files}
+            setFiles={setFiles}
+          />
         </div>
       </div>
-      {uploadPress && <UploadComponent closeUpload={() => setUploadPress(false)} />}
     </div>
   );
 }
 
-const Upload = ({ uploadPress, setUploadPress }) => {
-  const handleClick = () => {
-    setUploadPress(!uploadPress);
-  };
-
+const Upload = ({ sendFiles,setFiles }) => {
+  const handleClick=()=>{
+    sendFiles()
+    setFiles([])
+  }
   return (
     <button
-      className="bg-red-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+      className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
       onClick={handleClick}
     >
       Upload
     </button>
   );
 };
-
