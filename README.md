@@ -1,10 +1,61 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Slide
+Slide is a simple peer-to-peer file-sharing application built with Next.js for the frontend and Node.js with Socket.IO for real-time backend communication. This app allows users to easily share files directly with each other in a straightforward manner.
 
-## Getting Started
+## Features
+Basic File Sharing: Facilitates direct file transfers between peers.
+Drag-and-Drop Upload: Easy file uploads with drag-and-drop support.
+Real-Time Communication: Instant file transfer notifications using Socket.IO.
+## Tech Stack
+Frontend: Next.js (React-based framework)
+Backend: Node.js with Socket.IO
+Styling: Tailwind CSS
+Getting Started
+To get started with the Slide application on your local machine, follow these steps:
 
-First, run the development server:
+# Prerequisites
+Node.js and npm (or yarn, pnpm, or bun) installed. You can download them from nodejs.org.
+Installation
+Clone the Repository
 
 ```bash
+
+git clone https://github.com/yourusername/slide.git
+```
+Navigate to the Project Directory
+
+```bash
+
+cd slide
+```
+Install Dependencies
+
+For the backend:
+
+```bash
+
+cd backend
+npm install
+For the frontend:
+```
+```bash
+
+cd ../frontend
+npm install
+Running the Application
+Start the Backend Server
+```
+In the backend directory, run:
+
+```bash
+
+npm start
+```
+Start the Frontend Application
+
+In the frontend directory, run:
+
+```bash
+
 npm run dev
 # or
 yarn dev
@@ -13,24 +64,47 @@ pnpm dev
 # or
 bun dev
 ```
+Open http://localhost:3000 in your browser to view the app.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Building for Production
+Build the Backend
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+In the backend directory:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```bash
+
+npm run build
+Build the Frontend
+```
+In the frontend directory:
+
+```bash
+
+npm run build
+# or
+yarn build
+# or
+pnpm build
+# or
+bun build
+```
+Start the Production Server
+
+After building, start the production server in the backend directory:
+
+```bash
+
+npm start
+```
+The production version will be available at http://localhost:3000.
 
 ## Learn More
+To learn more about the technologies used:
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
+Next.js Documentation - Explore Next.js features and API.
+Node.js Documentation - Learn more about Node.js.
+Socket.IO Documentation - Understand Socket.IO usage.
 ## Deploy on Vercel
+For deploying your Next.js app, consider using Vercel, the platform created by the Next.js team.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Check out the Next.js deployment documentation for detailed deployment steps.
