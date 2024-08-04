@@ -1,4 +1,4 @@
-## Slide
+# Slide
 Slide is a simple peer-to-peer file-sharing application built with Next.js for the frontend and Node.js with Socket.IO for real-time backend communication. This app allows users to easily share files directly with each other in a straightforward manner.
 
 ## Features
@@ -12,7 +12,7 @@ Styling: Tailwind CSS
 Getting Started
 To get started with the Slide application on your local machine, follow these steps:
 
-# Prerequisites
+### Prerequisites
 Node.js and npm (or yarn, pnpm, or bun) installed. You can download them from nodejs.org.
 Installation
 Clone the Repository
