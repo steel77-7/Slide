@@ -19,12 +19,12 @@ export default function Navbar() {
         
           <div className="flex space-x-6">
            
-            <Link href="/file">
+            <Link href="file">
               <div className="text-gray-700 hover:text-blue-600 cursor-pointer transition duration-300">
                 Files
               </div>
             </Link>
-            <Link href="/recieving">
+            <Link href="recieving">
               <div className="text-gray-700 hover:text-blue-600 cursor-pointer transition duration-300">
                 Receive Files
               </div>

@@ -13,7 +13,7 @@ export default function Recieving() {
   const dataChannel = useRef(null);
   const fileName = useRef("");
   const [isConnected, setIsConnected] = useState(false);
-
+  const clientRef = useRef(null)
   const [filePresent, setFilePresent] = useState(false);
   const connectionStringRef = useRef(generateToken(15));
   const socket = getSocket();
@@ -33,6 +33,7 @@ export default function Recieving() {
     function onRecieveRequest({ connectionString }) {
       console.log("Connection string received:", connectionString);
       if (connectionString === connectionStringRef.current) {
+        clientRef.current=connectionString
         setReject(false);
       } else {
         console.log(
@@ -177,6 +178,7 @@ export default function Recieving() {
         <RecievePopupComponent
           handleReject={handleReject}
           handleEstablishConnection={handleEstablishConnection}
+          user={clientRef.current}
         />
       )}
       <div className="flex flex-col min-h-screen bg-gray-50 p-6">
@@ -191,21 +193,11 @@ export default function Recieving() {
         </p>
         <p className="text-gray-600 mb-4 flex items-center">
           <strong>Connected with user:</strong>
-          <span className="ml-2 font-bold">
+          <span className={`ml-2 font-bold ${connectionStatus?"text-green-500" : "text-red-500"}`}>
             {connectionStatus ? "Yes" : "No"}
           </span>
         </p>
-        {filePresent && (
-          <p className="mb-4 text-lg font-medium text-gray-700">
-            Download:{" "}
-            <button
-              onClick={handleDownload}
-              className="text-indigo-500 hover:text-indigo-700 focus:outline-none focus:underline"
-            >
-              Click here
-            </button>
-          </p>
-        )}
+       
         <div className="flex-1 flex bg-white shadow-2xl rounded-lg overflow-hidden justify-center items-center flex-col p-6">
           {filePresent && (
             <>

@@ -186,7 +186,7 @@ export default function Files() {
 
 const Upload = ({ sendFiles,setFiles,files }) => {
   const handleClick=()=>{
-    if(files.lenght>0){
+    if(files.length>0){
     sendFiles()
     setFiles([])
   }
