@@ -1,9 +1,5 @@
-import Navbar from "@/components/navbar";
-import Link from "next/link";
+"use client";
 
 export default function Home() {
-  return <>
-  
-
-  </>;
+  return <></>;
 }
