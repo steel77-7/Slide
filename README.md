@@ -19,7 +19,7 @@ Clone the Repository
 
 ```bash
 
-git clone https://github.com/yourusername/slide.git
+git clone https://github.com/steel77-7/Slide.git
 ```
 Navigate to the Project Directory
 
