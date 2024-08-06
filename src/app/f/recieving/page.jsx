@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -13,27 +15,28 @@ export default function Recieving() {
   const dataChannel = useRef(null);
   const fileName = useRef("");
   const [isConnected, setIsConnected] = useState(false);
-  const clientRef = useRef(null)
+  const clientRef = useRef(null);
   const [filePresent, setFilePresent] = useState(false);
   const connectionStringRef = useRef(generateToken(15));
   const socket = getSocket();
-  const worker = useRef(new Worker("/worker.js"));
+  const worker = useRef(typeof Worker !== "undefined" ? new Worker("/worker.js") : null);
 
-  // Socket logic
+ 
+
   useEffect(() => {
-    function onConnect() {
+    const onConnect = () => {
       console.log(socket.id);
       setIsConnected(true);
-    }
+    };
 
-    function onDisconnect() {
+    const onDisconnect = () => {
       setIsConnected(false);
-    }
+    };
 
-    function onRecieveRequest({ connectionString }) {
+    const onRecieveRequest = ({ connectionString }) => {
       console.log("Connection string received:", connectionString);
       if (connectionString === connectionStringRef.current) {
-        clientRef.current=connectionString
+        clientRef.current = connectionString;
         setReject(false);
       } else {
         console.log(
@@ -47,11 +50,11 @@ export default function Recieving() {
         });
         return;
       }
-    }
+    };
 
-    async function recieveAnswer(answer) {
+    const recieveAnswer = async (answer) => {
       try {
-        if (peerRef.current.signalingState === "have-local-offer") {
+        if (peerRef.current?.signalingState === "have-local-offer") {
           await peerRef.current.setRemoteDescription(
             new RTCSessionDescription(answer)
           );
@@ -64,16 +67,16 @@ export default function Recieving() {
       } catch (error) {
         console.error("Error setting remote description:", error);
       }
-    }
+    };
 
-    async function incomingICECandidate(candidate) {
+    const incomingICECandidate = async (candidate) => {
       try {
         await peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
         console.log("ICE candidate added successfully");
       } catch (error) {
         console.error("Error occurred while handling ICE candidates", error);
       }
-    }
+    };
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
@@ -116,12 +119,13 @@ export default function Recieving() {
     dataChannel.current.onopen = () => console.log("Data channel is open");
     dataChannel.current.onclose = () => console.log("Data channel is closed");
     dataChannel.current.onmessage = (e) => {
+      console.log('recieved chunks')
       recieveFiles(e.data);
     };
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log("Sending ICE candidate:", event.candidate);
+        console.log("Sending ICE candidate");
         socket.emit("ice-candidate", event.candidate);
       }
     };
@@ -143,13 +147,11 @@ export default function Recieving() {
     });
   };
 
-  //handling the file transfer logic
-
   const recieveFiles = async (data) => {
     if (data === "done") {
       setFilePresent(true);
     } else {
-      worker.current.postMessage(data);
+      worker.current?.postMessage(data);
     }
 
     if (typeof data === "string" && data !== "done") {
@@ -158,19 +160,20 @@ export default function Recieving() {
     }
   };
 
-  function handleDownload() {
-    worker.current.postMessage("download");
-    worker.current.addEventListener("message", (e) => {
+  const handleDownload = () => {
+    worker.current?.postMessage("download");
+    worker.current?.addEventListener("message", (e) => {
       const file = e.data;
-
-      const fileStream = StreamSaver.createWriteStream(
-        fileName.current + ".zip"
-      );
-      const readableStream = file.stream();
-      readableStream.pipeTo(fileStream);
+      const fileStream = StreamSaver.createWriteStream(fileName.current + ".zip");
+      const readableStream = new Response(file).body;
+      if (readableStream) {
+        readableStream.pipeTo(fileStream).then(() => console.log("File downloaded successfully"));
+      } else {
+        console.error("Failed to create readable stream");
+      }
     });
     setFilePresent(false);
-  }
+  };
 
   return (
     <>
@@ -193,11 +196,10 @@ export default function Recieving() {
         </p>
         <p className="text-gray-600 mb-4 flex items-center">
           <strong>Connected with user:</strong>
-          <span className={`ml-2 font-bold ${connectionStatus?"text-green-500" : "text-red-500"}`}>
+          <span className={`ml-2 font-bold ${connectionStatus ? "text-green-500" : "text-red-500"}`}>
             {connectionStatus ? "Yes" : "No"}
           </span>
         </p>
-       
         <div className="flex-1 flex bg-white shadow-2xl rounded-lg overflow-hidden justify-center items-center flex-col p-6">
           {filePresent && (
             <>
@@ -205,7 +207,10 @@ export default function Recieving() {
                 Your file has been downloaded
               </p>
               <div className="w-full flex-1 max-w-4xl p-4 flex justify-center">
-                <button className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl justify-center ">
+                <button
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl justify-center"
+                  onClick={handleDownload}
+                >
                   <svg
                     className="w-6 h-6 mr-2 -ml-1"
                     fill="none"
@@ -230,3 +235,5 @@ export default function Recieving() {
     </>
   );
 }
+
+
