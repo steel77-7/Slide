@@ -19,9 +19,15 @@ export default function Recieving() {
   const [filePresent, setFilePresent] = useState(false);
   const connectionStringRef = useRef(generateToken(15));
   const socket = getSocket();
-  const worker = useRef(typeof Worker !== "undefined" ? new Worker("/worker.js") : null);
+  const worker = useRef( new Worker("/worker.js"));
 
- 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('Client side render');
+    } else {
+      console.log('Server side render');
+    }
+  }, []);
 
   useEffect(() => {
     const onConnect = () => {
@@ -54,7 +60,7 @@ export default function Recieving() {
 
     const recieveAnswer = async (answer) => {
       try {
-        if (peerRef.current?.signalingState === "have-local-offer") {
+        if (peerRef.current.signalingState === "have-local-offer") {
           await peerRef.current.setRemoteDescription(
             new RTCSessionDescription(answer)
           );
@@ -125,7 +131,7 @@ export default function Recieving() {
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log("Sending ICE candidate");
+        console.log("Sending ICE candidate:", event.candidate);
         socket.emit("ice-candidate", event.candidate);
       }
     };
@@ -151,7 +157,7 @@ export default function Recieving() {
     if (data === "done") {
       setFilePresent(true);
     } else {
-      worker.current?.postMessage(data);
+      worker.current.postMessage(data);
     }
 
     if (typeof data === "string" && data !== "done") {
@@ -161,16 +167,11 @@ export default function Recieving() {
   };
 
   const handleDownload = () => {
-    worker.current?.postMessage("download");
-    worker.current?.addEventListener("message", (e) => {
-      const file = e.data;
+    worker.current.postMessage("download");
+    worker.current.addEventListener("message", (e) => {
+      const stream = e.data.stream;
       const fileStream = StreamSaver.createWriteStream(fileName.current + ".zip");
-      const readableStream = new Response(file).body;
-      if (readableStream) {
-        readableStream.pipeTo(fileStream).then(() => console.log("File downloaded successfully"));
-      } else {
-        console.error("Failed to create readable stream");
-      }
+      stream.pipeTo(fileStream)
     });
     setFilePresent(false);
   };

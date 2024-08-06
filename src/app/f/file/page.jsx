@@ -136,7 +136,7 @@ export default function Files() {
       //checking if the datachannel is safe to send more data or not without any overflow
       if (dataChannel.current.bufferedAmount > dataChannel.current.bufferedAmountLowThreshold) {
         dataChannel.current.onbufferedamountlow = () => {
-         // dataChannel.current.onbufferedamountlow = null;
+         dataChannel.current.onbufferedamountlow = null;
           send();
         };
         return;
