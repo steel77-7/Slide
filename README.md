@@ -98,13 +98,4 @@ npm start
 ```
 The production version will be available at http://localhost:3000.
 
-## Learn More
-To learn more about the technologies used:
 
-Next.js Documentation - Explore Next.js features and API.
-Node.js Documentation - Learn more about Node.js.
-Socket.IO Documentation - Understand Socket.IO usage.
-## Deploy on Vercel
-For deploying your Next.js app, consider using Vercel, the platform created by the Next.js team.
-
-Check out the Next.js deployment documentation for detailed deployment steps.
